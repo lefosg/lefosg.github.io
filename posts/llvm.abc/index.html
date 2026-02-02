@@ -1,0 +1,133 @@
+<!DOCTYPE html>
+<html lang="en-us"><head><script src="/livereload.js?mindelay=10&amp;v=2&amp;port=1313&amp;path=livereload" data-no-instant defer></script>
+  <meta charset="utf-8" />
+  <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+   <meta name="description" content="AbstractCallSite is a wrapper around call representations. It provides a unified interface for analysing calls. Generally, it just takes as input the call site, and runs checks on it, no matter what the underlying call instruction is (call, invoke etc.).
+What are the possible call representations? Whatever is a CallBase.  AbstractCallSite Does not inherit from any class, neither does any class inherit from it.">  
+
+  <title>
+    
+      LLVM AbstractCallSite
+    
+  </title>
+
+
+  <link rel="shortcut icon" type="image/x-icon" href="/" />
+  
+  
+  
+  <link rel="stylesheet" href="/css/main.b677af2d0fa66f826cc1f239d15b6c24ec44c601cb661a164151776b01fe4bca35897ab0e23d2c73807616246521e5d6803179a4b356963cc84158b86ed0cd83.css" integrity="sha512-tnevLQ&#43;mb4JswfI50VtsJOxExgHLZhoWQVF3awH&#43;S8o1iXqw4j0sc4B2FiRlIeXWgDF5pLNWljzIQVi4btDNgw==" />
+  
+</head>
+<body a="auto">
+        <main class="page-content" aria-label="Content">
+            <div class="w">
+                <div class="post-meta">
+                    <a href="/">..</a>
+
+                    <p>
+                        <time datetime="2026-01-31 20:46:08 &#43;0100 CET">
+                            2026-01-31
+                        </time>
+                    </p>
+                </div>
+
+<article>
+    <h1>LLVM AbstractCallSite</h1>
+
+    
+
+    <p><a href="https://llvm.org/doxygen/classllvm_1_1AbstractCallSite.html"><code>AbstractCallSite</code></a> is a wrapper around <!-- raw HTML omitted -->call representations<!-- raw HTML omitted -->. It provides a unified interface for analysing calls. Generally, it just takes as input the call site, and runs checks on it, no matter what the underlying call instruction is (call, invoke etc.).</p>
+<p>What are the possible call representations? Whatever is a <strong><code>CallBase</code></strong>.  AbstractCallSite Does not inherit from any class, neither does any class inherit from it.</p>
+<p><strong>Why</strong> would we want to do such a thing? Abstract the call site? Because we want to run optimisations. For example, the <code>Function::hasAddressTaken</code> method uses ACS to check if the name of a function appears in a place other than a direct call. If not, it can inline the function call to gain performance.</p>
+<p>Definition in <a href="https://llvm.org/doxygen/AbstractCallSite_8h_source.html"><code>llvm/IR/AbstractCallSite.h</code></a></p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-C++" data-lang="C++"><span style="display:flex;"><span><span style="color:#66d9ef">class</span> <span style="color:#a6e22e">AbstractCallSite</span> {
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">private</span><span style="color:#f92672">:</span>
+</span></span><span style="display:flex;"><span>	CallBase <span style="color:#f92672">*</span>CB;
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">public</span><span style="color:#f92672">:</span>
+</span></span><span style="display:flex;"><span>	LLVM_ABI AbstractCallSite(<span style="color:#66d9ef">const</span> Use <span style="color:#f92672">*</span>U);
+</span></span><span style="display:flex;"><span>	<span style="color:#66d9ef">void</span> <span style="color:#a6e22e">getCallbackUses</span>(<span style="color:#66d9ef">const</span> CallBase <span style="color:#f92672">&amp;</span>CB, SmallVectorImpl<span style="color:#f92672">&lt;</span><span style="color:#66d9ef">const</span> Use <span style="color:#f92672">*&gt;</span> <span style="color:#f92672">&amp;</span>CallbackUses);
+</span></span><span style="display:flex;"><span>	<span style="color:#66d9ef">bool</span> <span style="color:#a6e22e">isDirectCall</span>();
+</span></span><span style="display:flex;"><span>	<span style="color:#66d9ef">bool</span> <span style="color:#a6e22e">isIndirectCall</span>();
+</span></span><span style="display:flex;"><span>	<span style="color:#66d9ef">bool</span> <span style="color:#a6e22e">isCallbackCall</span>();
+</span></span><span style="display:flex;"><span>	<span style="color:#66d9ef">bool</span> <span style="color:#a6e22e">isCallee</span>();
+</span></span><span style="display:flex;"><span>	...
+</span></span><span style="display:flex;"><span>};
+</span></span></code></pre></div><p>Generally, to use this class, you construct an object such as <code>AbstractCallSite ACS(&amp;U)</code> as this is the constructor offered by the API.
+Then, to use the ACS run the check you want, e.g. <code>ACS.isDirectCall()</code> or <code>ACS.isIndirectCall</code> etc.</p>
+<p><!-- raw HTML omitted -->Note<!-- raw HTML omitted -->:
+Strangely enough, the constructor takes a <code>Use</code> object as parameter and not a <code>Function</code> or a <code>CallBase</code>. It makes sense to pass a Use object to provide context. Remember, we abstract the call site so we can see if ACS.isDirectCall or ACS.isCallbackCall -&gt; we need info about the call site + some function (Use object is perfect for this case).</p>
+<p>If only a CallBase was provided, we wouldn&rsquo;t know about which function in the argument list we talk about. Or if we only had the Function as a parameter, we may needed to pass an extra argument for the CallBase + even so, the same function may be provided twice as a parameter in a CallBase, so, for which parameter are we talking?
+So, it makes sense to pass the Use object which provides the <code>User</code> context, and the <code>Value</code> all in one.
+The constructor makes all necessary sanity checks for the Use object:</p>
+<ol>
+<li>User of Use must be <code>CallBase</code> or <code>ConstantExpr -&gt; CallBase</code>. Otherwise the ACS is invalid.</li>
+<li>Value can be anything, it doesn&rsquo;t matter if it is not a function (this leaves some small room for an invalid ACS).
+<ol>
+<li>If the Value is the Callee -&gt; we have direct/indirect call</li>
+<li>If the Value is an operand, we have a callback (plus checks some metadata, depends on other optimisations as well)</li>
+</ol>
+</li>
+</ol>
+<p>So <strong>what</strong> the <code>AbstractCallSite</code> does in reality is:</p>
+<ol>
+<li>Is the User of this Use a CallBase?</li>
+<li>If yes, for the given Value, we can infer if it is a direct/indirect call etc.</li>
+</ol>
+<p>Finally, it makes sense to use this when iterating over Instructions, and check if something is a <code>CallBase</code>, then abstract it:</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-C++" data-lang="C++"><span style="display:flex;"><span><span style="color:#66d9ef">for</span> (Instruction <span style="color:#f92672">&amp;</span>I : BB) { 
+</span></span><span style="display:flex;"><span>	<span style="color:#66d9ef">if</span> (<span style="color:#66d9ef">auto</span> <span style="color:#f92672">*</span>CB <span style="color:#f92672">=</span> dyn_cast<span style="color:#f92672">&lt;</span>CallBase<span style="color:#f92672">&gt;</span>(<span style="color:#f92672">&amp;</span>I)) {
+</span></span><span style="display:flex;"><span>		<span style="color:#66d9ef">const</span> Use <span style="color:#f92672">&amp;</span>CalleeUse <span style="color:#f92672">=</span> CB<span style="color:#f92672">-&gt;</span>getCalledOperandUse(); 
+</span></span><span style="display:flex;"><span>		AbstractCallSite <span style="color:#a6e22e">ACS</span>(<span style="color:#f92672">&amp;</span>CalleeUse);
+</span></span></code></pre></div><p><!-- raw HTML omitted -->Note2<!-- raw HTML omitted -->:
+This class defines some terminology. The term <code>broker</code> in the context of callbacks, is the function that takes the callback as parameter, and then calls it in its body. For example:</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-C++" data-lang="C++"><span style="display:flex;"><span><span style="color:#66d9ef">void</span> <span style="color:#a6e22e">my_callback</span>() {}
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">void</span> <span style="color:#a6e22e">do_sth</span>(<span style="color:#66d9ef">void</span>(<span style="color:#f92672">*</span>func)(<span style="color:#66d9ef">void</span>)) {
+</span></span><span style="display:flex;"><span>	func();	
+</span></span><span style="display:flex;"><span>}
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">int</span> <span style="color:#a6e22e">main</span>() {
+</span></span><span style="display:flex;"><span>	do_sth(my_callback);
+</span></span><span style="display:flex;"><span>}
+</span></span></code></pre></div><p>Here <code>do_sth</code> is the broker.</p>
+<p><!-- raw HTML omitted -->Note3<!-- raw HTML omitted -->:
+Callbacks are a bit of a strange situation. They may not be detected by the AbstractCallSite every time. Because, even though the callback function is located and detected in the parameter list, ACS does not know if it is <strong>indeed called</strong> in the body of the broker. ACS relies on metadata information emitted by <strong>clang</strong> (specifically the llvm::MD_callback aka !callback) to classify this Use as callback.
+For example:</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-C++" data-lang="C++"><span style="display:flex;"><span>__attribute__((callback(<span style="color:#ae81ff">1</span>)))  <span style="color:#75715e">//I promise arg 1 is a function to be called
+</span></span></span><span style="display:flex;"><span>	<span style="color:#66d9ef">void</span> functionWithCallback(<span style="color:#66d9ef">void</span> (<span style="color:#f92672">*</span>callback)()) {
+</span></span><span style="display:flex;"><span>	printf(<span style="color:#e6db74">&#34;Executing callback</span><span style="color:#ae81ff">\n</span><span style="color:#e6db74">&#34;</span>);
+</span></span><span style="display:flex;"><span>	callback();
+</span></span><span style="display:flex;"><span>}
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>__attribute__((callback(<span style="color:#ae81ff">1</span>,<span style="color:#ae81ff">2</span>))) <span style="color:#75715e">//Same + the 2nd argument is a paramater of func 
+</span></span></span><span style="display:flex;"><span>	<span style="color:#66d9ef">void</span> functionWithFunctionArg(<span style="color:#66d9ef">void</span> (<span style="color:#f92672">*</span>func)(<span style="color:#66d9ef">int</span>), <span style="color:#66d9ef">int</span> value) {
+</span></span><span style="display:flex;"><span>	func(value);
+</span></span><span style="display:flex;"><span>}
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">void</span> <span style="color:#a6e22e">callbackFunction</span>() {
+</span></span><span style="display:flex;"><span>	printf(<span style="color:#e6db74">&#34;Callback executed</span><span style="color:#ae81ff">\n</span><span style="color:#e6db74">&#34;</span>);
+</span></span><span style="display:flex;"><span>}
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">void</span> <span style="color:#a6e22e">anotherCallback</span>(<span style="color:#66d9ef">int</span> x) {
+</span></span><span style="display:flex;"><span>	printf(<span style="color:#e6db74">&#34;Another callback: %d</span><span style="color:#ae81ff">\n</span><span style="color:#e6db74">&#34;</span>, x);
+</span></span><span style="display:flex;"><span>}
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">int</span> <span style="color:#a6e22e">main</span>(<span style="color:#66d9ef">int</span> argc) {
+</span></span><span style="display:flex;"><span>	functionWithCallback(callbackFunction);  <span style="color:#75715e">//callback should be detected
+</span></span></span><span style="display:flex;"><span>	functionWithFunctionArg(anotherCallback, <span style="color:#ae81ff">200</span>);  <span style="color:#75715e">//same as above
+</span></span></span><span style="display:flex;"><span>}
+</span></span></code></pre></div><p>The developer needs to manually add this attribute that says &ldquo;I promise the first argument (clang counts args starting from 1) is a function that will be called&rdquo; and then, provide the indexes of the arguments to be passed like &ldquo;the 1st argument is the function, and if the function takes on argument, the second argument of <code>functionWithFunctionArg</code> is the 1st argument of the callback function <code>func</code>&rdquo; which in reality means <code>1st_arg(2nd_arg) -&gt; func(value)</code>.
+Clang will then produce the !callback metadata for ACS to consume.</p>
+<p>This is the ACS code that fails if callback metadata is not found:</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-C++" data-lang="C++"><span style="display:flex;"><span>MDNode <span style="color:#f92672">*</span>CallbackMD <span style="color:#f92672">=</span> Callee<span style="color:#f92672">-&gt;</span>getMetadata(LLVMContext<span style="color:#f92672">::</span>MD_callback);
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">if</span> (<span style="color:#f92672">!</span>CallbackMD) {
+</span></span><span style="display:flex;"><span>    NumInvalidAbstractCallSitesNoCallback<span style="color:#f92672">++</span>;
+</span></span><span style="display:flex;"><span>    CB <span style="color:#f92672">=</span> <span style="color:#66d9ef">nullptr</span>;
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">return</span>;
+</span></span><span style="display:flex;"><span>}
+</span></span></code></pre></div>
+</article>
+
+            </div>
+        </main>
+    </body></html>
