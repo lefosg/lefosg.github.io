@@ -2,27 +2,27 @@
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9"
   xmlns:xhtml="http://www.w3.org/1999/xhtml">
   <url>
-    <loc>http://localhost:58858/posts/llvm-value-class-hierarchy/</loc>
+    <loc>https://lefsog.github.io/posts/llvm-value-class-hierarchy/</loc>
     <lastmod>2026-02-02T22:13:14+01:00</lastmod>
   </url><url>
-    <loc>http://localhost:58858/posts/</loc>
+    <loc>https://lefsog.github.io/posts/</loc>
     <lastmod>2026-02-02T22:13:14+01:00</lastmod>
   </url><url>
-    <loc>http://localhost:58858/categories/</loc>
+    <loc>https://lefsog.github.io/categories/</loc>
     <lastmod>2026-01-31T20:46:08+01:00</lastmod>
   </url><url>
-    <loc>http://localhost:58858/categories/compilers/</loc>
+    <loc>https://lefsog.github.io/categories/compilers/</loc>
     <lastmod>2026-01-31T20:46:08+01:00</lastmod>
   </url><url>
-    <loc>http://localhost:58858/categories/llvm/</loc>
+    <loc>https://lefsog.github.io/categories/llvm/</loc>
     <lastmod>2026-01-31T20:46:08+01:00</lastmod>
   </url><url>
-    <loc>http://localhost:58858/posts/llvm.abc/</loc>
+    <loc>https://lefsog.github.io/posts/llvm.abc/</loc>
     <lastmod>2026-01-31T20:46:08+01:00</lastmod>
   </url><url>
-    <loc>http://localhost:58858/</loc>
+    <loc>https://lefsog.github.io/</loc>
     <lastmod>2022-08-25T21:30:04+08:00</lastmod>
   </url><url>
-    <loc>http://localhost:58858/tags/</loc>
+    <loc>https://lefsog.github.io/tags/</loc>
   </url>
 </urlset>

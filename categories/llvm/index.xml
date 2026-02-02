@@ -2,17 +2,17 @@
 <rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
   <channel>
     <title>Llvm on just compsec stuff</title>
-    <link>http://localhost:58858/categories/llvm/</link>
+    <link>https://lefsog.github.io/categories/llvm/</link>
     <description>Recent content in Llvm on just compsec stuff</description>
     <generator>Hugo</generator>
     <language>en-us</language>
     <lastBuildDate>Sat, 31 Jan 2026 20:46:08 +0100</lastBuildDate>
-    <atom:link href="http://localhost:58858/categories/llvm/index.xml" rel="self" type="application/rss+xml" />
+    <atom:link href="https://lefsog.github.io/categories/llvm/index.xml" rel="self" type="application/rss+xml" />
     <item>
       <title>LLVM AbstractCallSite</title>
-      <link>http://localhost:58858/posts/llvm.abc/</link>
+      <link>https://lefsog.github.io/posts/llvm.abc/</link>
       <pubDate>Sat, 31 Jan 2026 20:46:08 +0100</pubDate>
-      <guid>http://localhost:58858/posts/llvm.abc/</guid>
+      <guid>https://lefsog.github.io/posts/llvm.abc/</guid>
       <description>&lt;p&gt;&lt;a href=&#34;https://llvm.org/doxygen/classllvm_1_1AbstractCallSite.html&#34;&gt;&lt;code&gt;AbstractCallSite&lt;/code&gt;&lt;/a&gt; is a wrapper around &lt;!-- raw HTML omitted --&gt;call representations&lt;!-- raw HTML omitted --&gt;. It provides a unified interface for analysing calls. Generally, it just takes as input the call site, and runs checks on it, no matter what the underlying call instruction is (call, invoke etc.).&lt;/p&gt;&#xA;&lt;p&gt;What are the possible call representations? Whatever is a &lt;strong&gt;&lt;code&gt;CallBase&lt;/code&gt;&lt;/strong&gt;.  AbstractCallSite Does not inherit from any class, neither does any class inherit from it.&lt;/p&gt;</description>
     </item>
   </channel>

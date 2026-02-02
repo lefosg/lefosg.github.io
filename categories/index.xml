@@ -2,24 +2,24 @@
 <rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
   <channel>
     <title>Categories on just compsec stuff</title>
-    <link>http://localhost:58858/categories/</link>
+    <link>https://lefsog.github.io/categories/</link>
     <description>Recent content in Categories on just compsec stuff</description>
     <generator>Hugo</generator>
     <language>en-us</language>
     <lastBuildDate>Sat, 31 Jan 2026 20:46:08 +0100</lastBuildDate>
-    <atom:link href="http://localhost:58858/categories/index.xml" rel="self" type="application/rss+xml" />
+    <atom:link href="https://lefsog.github.io/categories/index.xml" rel="self" type="application/rss+xml" />
     <item>
       <title>Compilers</title>
-      <link>http://localhost:58858/categories/compilers/</link>
+      <link>https://lefsog.github.io/categories/compilers/</link>
       <pubDate>Sat, 31 Jan 2026 20:46:08 +0100</pubDate>
-      <guid>http://localhost:58858/categories/compilers/</guid>
+      <guid>https://lefsog.github.io/categories/compilers/</guid>
       <description></description>
     </item>
     <item>
       <title>Llvm</title>
-      <link>http://localhost:58858/categories/llvm/</link>
+      <link>https://lefsog.github.io/categories/llvm/</link>
       <pubDate>Sat, 31 Jan 2026 20:46:08 +0100</pubDate>
-      <guid>http://localhost:58858/categories/llvm/</guid>
+      <guid>https://lefsog.github.io/categories/llvm/</guid>
       <description></description>
     </item>
   </channel>
