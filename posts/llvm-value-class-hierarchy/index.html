@@ -1,0 +1,351 @@
+<!DOCTYPE html>
+<html lang="en-us"><head><script src="/livereload.js?mindelay=10&amp;v=2&amp;port=58858&amp;path=livereload" data-no-instant defer></script>
+  <meta charset="utf-8" />
+  <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+   <meta name="description" content="A Value is anything that can be used as an operand, has a type, and can be referenced. Almost everything is a Value.
+From doxygen:
+&quot;&quot;&quot;
+This is a very important LLVM class. It is the base class of all values computed by a program that may be used as operands to other values. Value is the super class of other important classes such as Instruction and Function. All Values have a Type. Type is not a subclass of Value. Some values can have a name and they belong to some Module. Setting the name on the Value automatically updates the module&rsquo;s symbol table.">  
+
+  <title>
+    
+      1. Llvm Value Class Hierarchy
+    
+  </title>
+
+
+  <link rel="shortcut icon" type="image/x-icon" href="/" />
+  
+  
+  
+  <link rel="stylesheet" href="/css/main.b677af2d0fa66f826cc1f239d15b6c24ec44c601cb661a164151776b01fe4bca35897ab0e23d2c73807616246521e5d6803179a4b356963cc84158b86ed0cd83.css" integrity="sha512-tnevLQ&#43;mb4JswfI50VtsJOxExgHLZhoWQVF3awH&#43;S8o1iXqw4j0sc4B2FiRlIeXWgDF5pLNWljzIQVi4btDNgw==" />
+  
+</head>
+<body a="auto">
+        <main class="page-content" aria-label="Content">
+            <div class="w">
+                <div class="post-meta">
+                    <a href="/">..</a>
+
+                    <p>
+                        <time datetime="2026-02-02 22:13:14 &#43;0100 CET">
+                            2026-02-02
+                        </time>
+                    </p>
+                </div>
+
+<article>
+    <h1>1. Llvm Value Class Hierarchy</h1>
+
+    
+
+    <p>A <a href="https://llvm.org/doxygen/classllvm_1_1Value.html"><code>Value</code></a> is anything that can be used as an operand, has a type, and can be referenced. Almost everything is a Value.</p>
+<p><!-- raw HTML omitted -->From doxygen<!-- raw HTML omitted -->:
+&quot;&quot;&quot;
+This is a very important LLVM class. It is the base class of all values computed by a program that may be used as operands to other values. <a href="https://llvm.org/doxygen/classllvm_1_1Value.html" title="LLVM Value Representation.">Value</a> is the super class of other important classes such as <a href="https://llvm.org/doxygen/classllvm_1_1Instruction.html">Instruction</a> and <a href="https://llvm.org/doxygen/classllvm_1_1Function.html">Function</a>. All Values have a <a href="https://llvm.org/doxygen/classllvm_1_1Type.html" title="The instances of the Type class are immutable: once they are created, they are never changed.">Type</a>. <a href="https://llvm.org/doxygen/classllvm_1_1Type.html" title="The instances of the Type class are immutable: once they are created, they are never changed.">Type</a> is not a subclass of <a href="https://llvm.org/doxygen/classllvm_1_1Value.html" title="LLVM Value Representation.">Value</a>. Some values can have a name and they belong to some <a href="https://llvm.org/doxygen/classllvm_1_1Module.html" title="A Module instance is used to store all the information related to an LLVM module.">Module</a>. Setting the name on the <a href="https://llvm.org/doxygen/classllvm_1_1Value.html" title="LLVM Value Representation.">Value</a> automatically updates the module&rsquo;s symbol table.</p>
+<p>Every value has a &ldquo;use list&rdquo; that keeps track of which other Values are using this <a href="https://llvm.org/doxygen/classllvm_1_1Value.html" title="LLVM Value Representation.">Value</a>. A <a href="https://llvm.org/doxygen/classllvm_1_1Value.html" title="LLVM Value Representation.">Value</a>can also have an arbitrary number of ValueHandle objects that watch it and listen to RAUW and Destroy events. See <a href="https://llvm.org/doxygen/ValueHandle_8h.html">llvm/IR/ValueHandle.h</a> for details.
+&quot;&quot;&quot;</p>
+<p>Type is not explained in this section but it is pretty much obvious that there is a class hierarchy for Type, which represents Data Types in the IR. Also every Value has a <code>name</code>.</p>
+<p>The important piece of information that Value provides for other classes to inherit, are the <strong>uses</strong>. Imagine any piece of IR code. It contains Values (e.g., %1, %x), that are being used all over the program. Value class maintains a field that points to its uses (e.g., variable %x was used in these specific instructions). This is very important and useful, as it allows LLVM passes to make optimisations like:</p>
+<ul>
+<li>if this Value is not used anywhere, delete it</li>
+<li>if this Value is a constant number (e.g., 24), replace all of its occurrences with the constant number 24.
+There is a big and &ldquo;kinda confusing&rdquo; part of LLVM which about def-use and use-def chains, that have to do with the exact aforementioned thing. Generally, for many reasons, it is important to know where a Value is used in the code. More on that later.</li>
+</ul>
+<p>So: anything is a Value:</p>
+<ul>
+<li>a local variable</li>
+<li>a global variable</li>
+<li>an instruction</li>
+<li>a function</li>
+<li>a constant int
+Important functions it provides downwards:</li>
+</ul>
+<table>
+  <thead>
+      <tr>
+          <th><strong>Function Signature</strong></th>
+          <th><strong>Description</strong></th>
+      </tr>
+  </thead>
+  <tbody>
+      <tr>
+          <td><code>void replaceAllUsesWith(Value *V)</code></td>
+          <td>Apply an optimization (e.g., Constant Folding)</td>
+      </tr>
+      <tr>
+          <td><code>Type* getType() const</code></td>
+          <td>Get the data type</td>
+      </tr>
+      <tr>
+          <td><code>void dump() const</code></td>
+          <td>Debug/Print it</td>
+      </tr>
+      <tr>
+          <td><code>LLVMContext&amp; getContext() const</code></td>
+          <td>Get LLVM Context</td>
+      </tr>
+      <tr>
+          <td><code>bool use_empty() const</code></td>
+          <td>Check if it&rsquo;s dead (check if not used in the IR). Checks if the UseList is <code>nullptr</code>.</td>
+      </tr>
+      <tr>
+          <td><code>bool hasOneUse() const</code></td>
+          <td>Check if has <strong>EXACTLY</strong> one use</td>
+      </tr>
+      <tr>
+          <td><code>iterator_range&lt;use_iterator&gt; uses()</code></td>
+          <td>Get an iterator with the Use list of this Value</td>
+      </tr>
+      <tr>
+          <td><code>bool hasUseList() const</code></td>
+          <td>Check if this Value &ldquo;can&rdquo; have a use list, not if it has one. The catch? ConstantData (aka primitive types like ints) do not have a use list.</td>
+      </tr>
+      <tr>
+          <td><code>user_iterator user_begin()</code></td>
+          <td>Iterator to FIRST User</td>
+      </tr>
+      <tr>
+          <td><code>user_iterator user_end()</code></td>
+          <td>Iterator PAST last User</td>
+      </tr>
+      <tr>
+          <td><code>iterator_range&lt;user_iterator&gt; users()</code></td>
+          <td>Convenient range [begin, end)</td>
+      </tr>
+      <tr>
+          <td><code>iterator_range&lt;use_iterator&gt; uses()</code></td>
+          <td>Returns a <code>Use</code> iterator, for the specific Value in use. This is one way to <strong>parse the def-use chain</strong></td>
+      </tr>
+      <tr>
+          <td><code>use_empty()</code></td>
+          <td></td>
+      </tr>
+      <tr>
+          <td><code>user_empty()</code></td>
+          <td></td>
+      </tr>
+      <tr>
+          <td>Definition in <a href="https://llvm.org/doxygen/IR_2Value_8h_source.html"><code>llvm/IR/Value.h</code></a>.</td>
+          <td></td>
+      </tr>
+  </tbody>
+</table>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-C++" data-lang="C++"><span style="display:flex;"><span><span style="color:#66d9ef">class</span> <span style="color:#a6e22e">Value</span> {
+</span></span><span style="display:flex;"><span>...
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">private</span><span style="color:#f92672">:</span>
+</span></span><span style="display:flex;"><span>	Type <span style="color:#f92672">*</span>VTy;
+</span></span><span style="display:flex;"><span>	Use <span style="color:#f92672">*</span>UseList <span style="color:#f92672">=</span> <span style="color:#66d9ef">nullptr</span>;
+</span></span><span style="display:flex;"><span>...
+</span></span><span style="display:flex;"><span>	<span style="color:#66d9ef">bool</span> hasName() <span style="color:#66d9ef">const</span> { <span style="color:#66d9ef">return</span> HasName; }
+</span></span><span style="display:flex;"><span>	<span style="color:#66d9ef">bool</span> <span style="color:#a6e22e">hasUseList</span>() <span style="color:#66d9ef">const</span> { <span style="color:#66d9ef">return</span> <span style="color:#f92672">!</span>isa<span style="color:#f92672">&lt;</span>ConstantData<span style="color:#f92672">&gt;</span>(<span style="color:#66d9ef">this</span>); }
+</span></span><span style="display:flex;"><span>	<span style="color:#66d9ef">bool</span> <span style="color:#a6e22e">use_empty</span>() <span style="color:#66d9ef">const</span> {
+</span></span><span style="display:flex;"><span>		assertModuleIsMaterialized();
+</span></span><span style="display:flex;"><span>		<span style="color:#66d9ef">return</span> UseList <span style="color:#f92672">==</span> <span style="color:#66d9ef">nullptr</span>;
+</span></span><span style="display:flex;"><span>	}
+</span></span><span style="display:flex;"><span>};
+</span></span></code></pre></div><h2 id="basicblock">BasicBlock</h2>
+<p><!-- raw HTML omitted -->From doxygen<!-- raw HTML omitted -->:
+&quot;&quot;&quot;
+LLVM <a href="https://llvm.org/doxygen/classllvm_1_1BasicBlock.html"><code>Basic Block</code></a> Representation.</p>
+<p>This represents a single basic block in LLVM. <strong>A Basic Block (BB) is simply a container of instructions that execute sequentially</strong>. Basic blocks are Values because they are referenced by instructions such as branches and switch tables. The type of a <a href="https://llvm.org/doxygen/classllvm_1_1BasicBlock.html" title="LLVM Basic Block Representation.">BasicBlock</a> is &ldquo;Type::LabelTy&rdquo; because the basic block represents a label to which a branch can jump.</p>
+<p><strong>A well formed</strong> basic block is formed of a list of non-terminating instructions followed by a single terminator instruction. <strong>Terminator instructions</strong> may not occur in the middle of basic blocks, and must terminate the blocks. The <a href="https://llvm.org/doxygen/classllvm_1_1BasicBlock.html" title="LLVM Basic Block Representation.">BasicBlock</a> class allows malformed basic blocks to occur because it may be useful in the intermediate stage of constructing or modifying a program. However, the verifier will ensure that basic blocks are &ldquo;well formed&rdquo;.
+&quot;&quot;&quot;</p>
+<p>All in all, a Basic Block is just a container of instructions. The terminator instructions are <code>jumps</code>, <code>branch</code>, <code>switches</code>,<code>returns</code> etc. which change the control flow of the program. A Basic Block contains <strong>contiguous</strong> code. Note, that a <code>call</code> instruction is not a terminator instruction, since control flow returns to the same block again. As per the <a href="https://llvm.org/docs/LangRef.html#terminator-instructions">documentation</a> the terminator instructions are:</p>
+<ul>
+<li><code>ret</code></li>
+<li><code>br</code></li>
+<li><code>switch</code></li>
+<li><code>indirectbr</code></li>
+<li><code>invoke</code></li>
+<li><code>callbr</code></li>
+<li><code>resume</code></li>
+<li><code>catchswitch</code></li>
+<li><code>catchret</code></li>
+<li><code>cleanupret</code></li>
+<li><code>unreachable</code></li>
+</ul>
+<p>For example the following function has some BBs:</p>
+<pre tabindex="0"><code class="language-llvm-ir" data-lang="llvm-ir">define dso_local i32 @get_value(i32 %0) local_unnamed_addr #2 {
+	%2 = icmp eq i32 %0, 0
+	br i1 %2, label %4, label %3
+3: ; preds = %1
+	call void @plusone2(i32* nonnull @global)
+	br label %7
+4: ; preds = %1
+	%5 = load i32, i32* @global, align 4, !tbaa !6
+	%6 = add nsw i32 %5, 1
+	store i32 %6, i32* @global, align 4, !tbaa !6
+	br label %7
+7: ; preds = %4, %3
+	%8 = phi i32 [ 22, %3 ], [ 20, %4 ]
+	%9 = phi i32 (i32)* [ @sq, %3 ], [ @half, %4 ]
+	%10 = phi i32 (i32)* [ @half, %3 ], [ @sq, %4 ]
+	%11 = phi i32 (i32)* [ @plusone, %3 ], [ null, %4 ]
+	%12 = call i32 %10(i32 2) #3, !callees !10
+	%13 = call i32 %11(i32 3) #3, !callees !11
+	br i1 %2, label %16, label %14
+14: ; preds = %7
+	%15 = call i32 %9(i32 4) #3, !callees !10
+	br label %16
+16: ; preds = %14, %7
+	ret i32 %8
+}
+</code></pre><p>Usually when we want to iterate over the instructions of a Function, we mean to iterate the instructions of its Basic Blocks.</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-C++" data-lang="C++"><span style="display:flex;"><span><span style="color:#66d9ef">for</span> (Function <span style="color:#f92672">&amp;</span>F:M)
+</span></span><span style="display:flex;"><span>	<span style="color:#66d9ef">for</span> (BasicBlock <span style="color:#f92672">&amp;</span>BB:F)
+</span></span><span style="display:flex;"><span>		<span style="color:#66d9ef">for</span> (Instruction <span style="color:#f92672">&amp;</span>I:BB)
+</span></span></code></pre></div><p>Also, through the BBs we actually get the CFG (Control Flow Graph) of a function.
+It is mandatory, that IF there exist <code>PHINode</code> Instructions in a Basic Block, they are placed <strong>FIRST</strong> within the Basic Block, and then all the other instructions are placed after the PHINode in the same block.</p>
+<p>Important calls in it API:</p>
+<table>
+  <thead>
+      <tr>
+          <th>Function Signature</th>
+          <th>Description</th>
+      </tr>
+  </thead>
+  <tbody>
+      <tr>
+          <td><code>Instruction *getTerminator()</code></td>
+          <td>Returns the last instruction (e.g., <code>ret</code>, <code>br</code>)</td>
+      </tr>
+      <tr>
+          <td><code>Instruction *getFirstNonPHI()</code></td>
+          <td>Returns the first &ldquo;real&rdquo; instruction, skipping over PHI nodes and debug intrinsics.</td>
+      </tr>
+      <tr>
+          <td><code>Function *getParent()</code></td>
+          <td>Returns the <code>Function</code> containing this block.</td>
+      </tr>
+      <tr>
+          <td><code>static BasicBlock *Create(LLVMContext &amp;Context, ...)</code></td>
+          <td>Static factory method to create a new BasicBlock.</td>
+      </tr>
+      <tr>
+          <td><code>BasicBlock* splitBasicBlock(Instruction *I, ...)</code></td>
+          <td>Splits the current block into two at instruction <code>I</code>. Creates a new block, moves everything after <code>I</code> into it, and adds an unconditional branch to connect them.</td>
+      </tr>
+      <tr>
+          <td>Declarations/Definitions at <a href="https://llvm.org/doxygen/IR_2BasicBlock_8h_source.html"><code>llvm/IR/BasicBlock.h</code></a>.</td>
+          <td></td>
+      </tr>
+  </tbody>
+</table>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-C++" data-lang="C++"><span style="display:flex;"><span><span style="color:#66d9ef">class</span> <span style="color:#a6e22e">BasicBlock</span> <span style="color:#66d9ef">final</span><span style="color:#f92672">:</span> <span style="color:#66d9ef">public</span> Value,
+</span></span><span style="display:flex;"><span>                        <span style="color:#66d9ef">public</span> ilist_node_with_parent<span style="color:#f92672">&lt;</span>BasicBlock, Function<span style="color:#f92672">&gt;</span> {
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">private</span><span style="color:#f92672">:</span>
+</span></span><span style="display:flex;"><span>	InstListType InstList;
+</span></span><span style="display:flex;"><span>	Function <span style="color:#f92672">*</span>Parent;
+</span></span><span style="display:flex;"><span>};
+</span></span></code></pre></div><h2 id="argument">Argument</h2>
+<p><!-- raw HTML omitted -->From doxygen<!-- raw HTML omitted -->:
+&quot;&quot;&quot;
+This class represents an incoming <strong>formal argument</strong> to a <a href="https://llvm.org/doxygen/classllvm_1_1Function.html">Function</a>.</p>
+<p>A formal argument, since it is ‘formal’, <strong>does not contain an actual value but instead represents the type, argument number, and attributes</strong> of an argument for a specific function. When used in the body of said function, the argument of course represents the value of the actual argument that the function was called with.
+&quot;&quot;&quot;</p>
+<p>This means that the <code>Argument</code> class does not represent the arguments you will find in a <code>call</code> instruction within the IR. If you see the declaration/definition <code>void f(int a)</code> then <code>a</code> is an Argument. Example usage:</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-C++" data-lang="C++"><span style="display:flex;"><span><span style="color:#75715e">// example 1, parsing function args
+</span></span></span><span style="display:flex;"><span><span style="color:#66d9ef">for</span> (Argument <span style="color:#f92672">&amp;</span>Arg : F<span style="color:#f92672">-&gt;</span>args()) {
+</span></span><span style="display:flex;"><span>	<span style="color:#66d9ef">unsigned</span> Index <span style="color:#f92672">=</span> Arg.getArgNo();
+</span></span><span style="display:flex;"><span>	<span style="color:#66d9ef">if</span> (Arg<span style="color:#f92672">-&gt;</span>use_empty()) {
+</span></span><span style="display:flex;"><span>        outs() <span style="color:#f92672">&lt;&lt;</span> <span style="color:#e6db74">&#34;Argument is unused (Dead Argument)!</span><span style="color:#ae81ff">\n</span><span style="color:#e6db74">&#34;</span>;
+</span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">return</span>;
+</span></span><span style="display:flex;"><span>    }
+</span></span><span style="display:flex;"><span><span style="color:#75715e">// example 2, create a new function in you ir pass with 2 arguments
+</span></span></span><span style="display:flex;"><span>Type <span style="color:#f92672">*</span>Int32Ty <span style="color:#f92672">=</span> Type<span style="color:#f92672">::</span>getInt32Ty(Ctx);
+</span></span><span style="display:flex;"><span>std<span style="color:#f92672">::</span>vector<span style="color:#f92672">&lt;</span>Type<span style="color:#f92672">*&gt;</span> ArgTypes <span style="color:#f92672">=</span> { Int32Ty, Int32Ty };
+</span></span><span style="display:flex;"><span>FunctionType <span style="color:#f92672">*</span>FT <span style="color:#f92672">=</span> FunctionType<span style="color:#f92672">::</span>get(Int32Ty, ArgTypes, false);
+</span></span><span style="display:flex;"><span>Function <span style="color:#f92672">*</span>F <span style="color:#f92672">=</span> Function<span style="color:#f92672">::</span>Create(FT, Function<span style="color:#f92672">::</span>ExternalLinkage, <span style="color:#e6db74">&#34;sum&#34;</span>, M);
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">auto</span> ArgIt <span style="color:#f92672">=</span> F<span style="color:#f92672">-&gt;</span>arg_begin();
+</span></span><span style="display:flex;"><span>Argument <span style="color:#f92672">*</span>ArgA <span style="color:#f92672">=</span> ArgIt; <span style="color:#75715e">// Get first argument
+</span></span></span><span style="display:flex;"><span>ArgA<span style="color:#f92672">-&gt;</span>setName(<span style="color:#e6db74">&#34;a&#34;</span>);
+</span></span><span style="display:flex;"><span>ArgIt<span style="color:#f92672">++</span>;                <span style="color:#75715e">// Advance iterator
+</span></span></span><span style="display:flex;"><span>Argument <span style="color:#f92672">*</span>ArgB <span style="color:#f92672">=</span> ArgIt; <span style="color:#75715e">// Get second argument
+</span></span></span><span style="display:flex;"><span>ArgB<span style="color:#f92672">-&gt;</span>setName(<span style="color:#e6db74">&#34;b&#34;</span>);
+</span></span></code></pre></div><p>And because we are talking about formal parameters, their Use is apparently limited to the scope of the Function. Generally, it makes sense to take an Argument and check its usage within the function body (e.g., how is parameter %0 used in this function? an <code>alloca</code>, a <code>store</code> etc.?)</p>
+<p>Important API calls:</p>
+<table>
+  <thead>
+      <tr>
+          <th>Function Signature</th>
+          <th>Description</th>
+      </tr>
+  </thead>
+  <tbody>
+      <tr>
+          <td><code>Function *getParent()</code></td>
+          <td>Get the Function the Argument belongs to</td>
+      </tr>
+      <tr>
+          <td><code>unsigned getArgNo() const</code></td>
+          <td>Returns the <strong>0-based index</strong> of the argument in the function&rsquo;s parameter list.</td>
+      </tr>
+      <tr>
+          <td><code>bool hasAttribute(Attribute::AttrKind Kind) const</code></td>
+          <td>Returns <code>true</code> if the argument is tagged with a specific attribute</td>
+      </tr>
+      <tr>
+          <td>Declaration/Definition at <a href="https://llvm.org/doxygen/IR_2Argument_8h_source.html"><code>Argument.h</code></a>.</td>
+          <td></td>
+      </tr>
+  </tbody>
+</table>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-C++" data-lang="C++"><span style="display:flex;"><span><span style="color:#66d9ef">class</span> <span style="color:#a6e22e">Argument</span> <span style="color:#66d9ef">final</span> <span style="color:#f92672">:</span> <span style="color:#66d9ef">private</span> Value {
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">private</span><span style="color:#f92672">:</span>
+</span></span><span style="display:flex;"><span>	Function <span style="color:#f92672">*</span>Parent;
+</span></span><span style="display:flex;"><span>	<span style="color:#66d9ef">unsigned</span> ArgNo;
+</span></span><span style="display:flex;"><span>};
+</span></span></code></pre></div><h2 id="user-class">User Class</h2>
+<p>The <a href="https://llvm.org/doxygen/classllvm_1_1User.html"><code>User</code></a> class represent anything that uses other Values as operands. It contains a list of operands (which are of <code>Use</code> type, but more on <code>Use</code> later for the use-def chain).</p>
+<p>The most obvious cases of the <code>User</code> class are:</p>
+<ul>
+<li>instructions (majority of cases)</li>
+<li>global variable initialisations</li>
+<li>expressions (aka rvalues)
+Why is this obvious? Because instructions like <code>%1 = add %x, %y</code> use the variables (<code>Values</code>) %x and %y, so an instruction is obviously a User. Also a global variable initialisation like <code>@global_fptr = foo</code> is using the Value <code>foo</code> (let&rsquo;s say it is a <code>Function</code>). So all the <code>User</code> class is, is a way of encapsulating the actual use of some Values, in one place. In the example <code>%1 = add %x, %y</code> the <code>User</code> is the add instruction, and the operands/uses are the Values %x and %y.</li>
+</ul>
+<p>The two most important subclasses are <code>Instruction</code> which represent the actual IR instructions, and <code>Constant</code> which represents all known compile time values (like <code>Function</code>, <code>GlobalVariable</code>, <code>ConstantArray</code> etc.).</p>
+<p><code>User</code> class is very important for the whole use-def and def-use chain in the LLVM ecosystem (see the use-def section). This class maintains the Values being used as <strong>operands</strong>. Operands can either be:</p>
+<ul>
+<li>Intrusive</li>
+<li>Hung-off
+Imagine a <code>call</code> instruction. Some functions are variadic which means the take an unknown number of arguments. By <code>Intrusive</code> operands we mean that the number of operands is known and thus they are allocated within the <code>User</code> object. If the number of operands is unknown, more space is allocated outside the <code>User</code> object to maintain the incoming operands. These are called <code>Hung-off</code> operands. There is also a possibility to mix these two cases. For example, <code>printf</code> is indeed a variadic function, but will always take at least one string as input, so the first parameter can be an Intrusive parameter and the rest Hung-off.
+o point to a new <code>Value</code> |
+| <code>unsigned getNumOperands() const</code>         | Returns the total count of inputs this User consumes     |
+| <code>op_range operands()</code>                     | Returns a modern <strong>iterator</strong> range over all operands    |
+Declaration/Definition in <a href="https://llvm.org/doxygen/IR_2User_8h_source.html"><code>User.h</code></a>.</li>
+</ul>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-C++" data-lang="C++"><span style="display:flex;"><span><span style="color:#66d9ef">class</span> <span style="color:#a6e22e">User</span> <span style="color:#f92672">:</span> <span style="color:#66d9ef">public</span> Value {
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">protected</span><span style="color:#f92672">:</span>
+</span></span><span style="display:flex;"><span>	<span style="color:#66d9ef">struct</span> <span style="color:#a6e22e">HungOffOperandsAllocMarker</span> {};
+</span></span><span style="display:flex;"><span>	<span style="color:#66d9ef">struct</span> <span style="color:#a6e22e">IntrusiveOperandsAllocMarker</span> {
+</span></span><span style="display:flex;"><span>	    <span style="color:#66d9ef">const</span> <span style="color:#66d9ef">unsigned</span> NumOps; <span style="color:#75715e">/// The number of operands for this User.
+</span></span></span><span style="display:flex;"><span>	  };
+</span></span><span style="display:flex;"><span>};
+</span></span></code></pre></div><p>Important API calls:</p>
+<table>
+  <thead>
+      <tr>
+          <th>Function Signature</th>
+          <th>Description</th>
+      </tr>
+  </thead>
+  <tbody>
+      <tr>
+          <td><code>Value *getOperand(unsigned i) const</code></td>
+          <td>Returns the input <code>Value</code> at index <code>i</code></td>
+      </tr>
+      <tr>
+          <td><code>void setOperand(unsigned i, Value *Val)</code></td>
+          <td>Changes the input at index <code>i</code> t</td>
+      </tr>
+  </tbody>
+</table>
+
+</article>
+
+            </div>
+        </main>
+    </body></html>

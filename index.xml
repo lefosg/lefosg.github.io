@@ -2,17 +2,24 @@
 <rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
   <channel>
     <title>just compsec stuff</title>
-    <link>http://localhost:1313/</link>
+    <link>http://localhost:58858/</link>
     <description>Recent content on just compsec stuff</description>
     <generator>Hugo</generator>
     <language>en-us</language>
-    <lastBuildDate>Sat, 31 Jan 2026 20:46:08 +0100</lastBuildDate>
-    <atom:link href="http://localhost:1313/index.xml" rel="self" type="application/rss+xml" />
+    <lastBuildDate>Mon, 02 Feb 2026 22:13:14 +0100</lastBuildDate>
+    <atom:link href="http://localhost:58858/index.xml" rel="self" type="application/rss+xml" />
+    <item>
+      <title>1. Llvm Value Class Hierarchy</title>
+      <link>http://localhost:58858/posts/llvm-value-class-hierarchy/</link>
+      <pubDate>Mon, 02 Feb 2026 22:13:14 +0100</pubDate>
+      <guid>http://localhost:58858/posts/llvm-value-class-hierarchy/</guid>
+      <description>&lt;p&gt;A &lt;a href=&#34;https://llvm.org/doxygen/classllvm_1_1Value.html&#34;&gt;&lt;code&gt;Value&lt;/code&gt;&lt;/a&gt; is anything that can be used as an operand, has a type, and can be referenced. Almost everything is a Value.&lt;/p&gt;&#xA;&lt;p&gt;&lt;!-- raw HTML omitted --&gt;From doxygen&lt;!-- raw HTML omitted --&gt;:&#xA;&amp;quot;&amp;quot;&amp;quot;&#xA;This is a very important LLVM class. It is the base class of all values computed by a program that may be used as operands to other values. &lt;a href=&#34;https://llvm.org/doxygen/classllvm_1_1Value.html&#34; title=&#34;LLVM Value Representation.&#34;&gt;Value&lt;/a&gt; is the super class of other important classes such as &lt;a href=&#34;https://llvm.org/doxygen/classllvm_1_1Instruction.html&#34;&gt;Instruction&lt;/a&gt; and &lt;a href=&#34;https://llvm.org/doxygen/classllvm_1_1Function.html&#34;&gt;Function&lt;/a&gt;. All Values have a &lt;a href=&#34;https://llvm.org/doxygen/classllvm_1_1Type.html&#34; title=&#34;The instances of the Type class are immutable: once they are created, they are never changed.&#34;&gt;Type&lt;/a&gt;. &lt;a href=&#34;https://llvm.org/doxygen/classllvm_1_1Type.html&#34; title=&#34;The instances of the Type class are immutable: once they are created, they are never changed.&#34;&gt;Type&lt;/a&gt; is not a subclass of &lt;a href=&#34;https://llvm.org/doxygen/classllvm_1_1Value.html&#34; title=&#34;LLVM Value Representation.&#34;&gt;Value&lt;/a&gt;. Some values can have a name and they belong to some &lt;a href=&#34;https://llvm.org/doxygen/classllvm_1_1Module.html&#34; title=&#34;A Module instance is used to store all the information related to an LLVM module.&#34;&gt;Module&lt;/a&gt;. Setting the name on the &lt;a href=&#34;https://llvm.org/doxygen/classllvm_1_1Value.html&#34; title=&#34;LLVM Value Representation.&#34;&gt;Value&lt;/a&gt; automatically updates the module&amp;rsquo;s symbol table.&lt;/p&gt;</description>
+    </item>
     <item>
       <title>LLVM AbstractCallSite</title>
-      <link>http://localhost:1313/posts/llvm.abc/</link>
+      <link>http://localhost:58858/posts/llvm.abc/</link>
       <pubDate>Sat, 31 Jan 2026 20:46:08 +0100</pubDate>
-      <guid>http://localhost:1313/posts/llvm.abc/</guid>
+      <guid>http://localhost:58858/posts/llvm.abc/</guid>
       <description>&lt;p&gt;&lt;a href=&#34;https://llvm.org/doxygen/classllvm_1_1AbstractCallSite.html&#34;&gt;&lt;code&gt;AbstractCallSite&lt;/code&gt;&lt;/a&gt; is a wrapper around &lt;!-- raw HTML omitted --&gt;call representations&lt;!-- raw HTML omitted --&gt;. It provides a unified interface for analysing calls. Generally, it just takes as input the call site, and runs checks on it, no matter what the underlying call instruction is (call, invoke etc.).&lt;/p&gt;&#xA;&lt;p&gt;What are the possible call representations? Whatever is a &lt;strong&gt;&lt;code&gt;CallBase&lt;/code&gt;&lt;/strong&gt;.  AbstractCallSite Does not inherit from any class, neither does any class inherit from it.&lt;/p&gt;</description>
     </item>
   </channel>
